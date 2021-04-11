@@ -12,13 +12,9 @@ FISHQ - PUSRISKAN
   code update: 20:24 WIB 10 APRIL 2021
 '''
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-run','--run',action="store_true",help="Menjalankan aplikasi pendeteksian FISH-Q")
-
-
 # ARSITEKTUR YOLO V3
 labelMap = [
-    "Ikan",         "bicycle",    "car",           "motorbike",     "aeroplane",   "bus",           "train",
+    "Person",         "bicycle",    "car",           "motorbike",     "aeroplane",   "bus",           "train",
     "truck",          "boat",       "traffic light", "fire hydrant",  "stop sign",   "parking meter", "bench",
     "bird",           "cat",        "dog",           "horse",         "sheep",       "cow",           "elephant",
     "bear",           "zebra",      "giraffe",       "backpack",      "umbrella",    "handbag",       "tie",
@@ -34,6 +30,8 @@ labelMap = [
 syncNN = True
 
 # Cek direktori weights model didalam folder 
+# tiny-yolo-v4_openvino_2021.2_6shave.blob
+# yolov3_final_shave6.blob
 nnBlobPath = str((Path(__file__).parent / Path('models/yolov3_final_shave6.blob')).resolve().absolute())
 if len(sys.argv) > 1:
     nnBlobPath = sys.argv[1]
@@ -85,7 +83,7 @@ def create_pipeline():
     spatialDetectionNetwork.setDepthLowerThreshold(100)
     spatialDetectionNetwork.setDepthUpperThreshold(5000)
     # Yolo specific parameters
-    spatialDetectionNetwork.setNumClasses(80)
+    spatialDetectionNetwork.setNumClasses(80) #set classes
     spatialDetectionNetwork.setCoordinateSize(4)
     spatialDetectionNetwork.setAnchors(np.array([10,14, 23,27, 37,58, 81,82, 135,169, 344,319]))
     spatialDetectionNetwork.setAnchorMasks({ "side26": np.array([1,2,3]), "side13": np.array([3,4,5]) })
@@ -202,11 +200,6 @@ class Main():
                     break
 
 #-------- run apps ----------
-args = parser.parse_args()
+
 apps=Main()
-
-if args.run:
-    apps.run()
-else:
-    print("Masukan opsi pilihan anda")
-
+apps.run()
