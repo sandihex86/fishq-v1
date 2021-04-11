@@ -1,1 +1,0 @@
-Model hasil training framework darknet Yolo V3 dan Yolo V4
