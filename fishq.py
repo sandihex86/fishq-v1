@@ -14,7 +14,7 @@ FISHQ - PUSRISKAN
 
 # ARSITEKTUR YOLO V3
 labelMap = [
-    "Person",         "bicycle",    "car",           "motorbike",     "aeroplane",   "bus",           "train",
+    "Ikan",         "bicycle",    "car",           "motorbike",     "aeroplane",   "bus",           "train",
     "truck",          "boat",       "traffic light", "fire hydrant",  "stop sign",   "parking meter", "bench",
     "bird",           "cat",        "dog",           "horse",         "sheep",       "cow",           "elephant",
     "bear",           "zebra",      "giraffe",       "backpack",      "umbrella",    "handbag",       "tie",
@@ -83,7 +83,7 @@ def create_pipeline():
     spatialDetectionNetwork.setDepthLowerThreshold(100)
     spatialDetectionNetwork.setDepthUpperThreshold(5000)
     # Yolo specific parameters
-    spatialDetectionNetwork.setNumClasses(80) #set classes
+    spatialDetectionNetwork.setNumClasses(1) #set classes
     spatialDetectionNetwork.setCoordinateSize(4)
     spatialDetectionNetwork.setAnchors(np.array([10,14, 23,27, 37,58, 81,82, 135,169, 344,319]))
     spatialDetectionNetwork.setAnchorMasks({ "side26": np.array([1,2,3]), "side13": np.array([3,4,5]) })
