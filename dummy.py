@@ -1,16 +1,30 @@
-#for dummy
 from pathlib import Path
-import argparse
 import sys
 import cv2
 import depthai as dai
 import numpy as np
 import time
+import logging
+import logging.handlers
+
+
+''' Logging Parameter '''
+logger = logging.getLogger('dummy')
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s:%(message)s')
+#handler = logging.handlers.RotatingFileHandler(filename = "fishq.log", maxBytes = 100000, backupCount= 1000)
+handler = logging.handlers.TimedRotatingFileHandler(filename = 'DUMMY.log', when = 'M', backupCount = 1000 )
+handler.setFormatter(formatter)
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.addHandler(stream_handler)
+
 
 '''
 FISHQ - PUSRISKAN
   Project penelitian pendeteksian objek ikan dengan menggunakan camera artifisial inteligent
-  code update: 20:24 WIB 10 APRIL 2021
+  code update: 13:24 WIB 18 APRIL 2021
 '''
 
 # ARSITEKTUR YOLO V3
@@ -156,6 +170,12 @@ def extractData(detections):
                   f"(X: {int(detection.spatialCoordinates.x)},",
                   f"Y: {int(detection.spatialCoordinates.y)},",
                   f"Y: {int(detection.spatialCoordinates.z)})mm")
+def stratLogging(detections):
+    for detection in detections:
+        logger.info('FISHQ DETECT:{}:X={}mm:Y={}mm:Z={}mm'.format(str(labelMap[detection.label]), 
+                                                                              int(detection.spatialCoordinates.x),
+                                                                              int(detection.spatialCoordinates.y),
+                                                                              int(detection.spatialCoordinates.x)))
 
 class Main():
     def __init__(self):
@@ -196,7 +216,8 @@ class Main():
                     visualDepth(roiDatas,depthFrame,color)
                 
                 visualDetector(frame,fps,color,detections)
-                extractData(detections)
+                stratLogging(detections)
+                
                 if cv2.waitKey(1) == ord('q'):
                     break
 
@@ -204,4 +225,3 @@ class Main():
 
 apps=Main()
 apps.run()
-
