@@ -47,7 +47,7 @@ syncNN = True
 # Cek direktori weights model didalam folder 
 # tiny-yolo-v4_openvino_2021.2_6shave.blob
 # yolov3_final_shave6.blob
-nnBlobPath = str((Path(__file__).parent / Path('models/tiny-yolo-v4_openvino_2021.2_6shave.blob')).resolve().absolute())
+nnBlobPath = str((Path(__file__).parent / Path('models/yolov3_final_shave6.blob')).resolve().absolute())
 if len(sys.argv) > 1:
     nnBlobPath = sys.argv[1]
 print(nnBlobPath)
