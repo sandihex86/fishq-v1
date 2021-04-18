@@ -1,20 +1,35 @@
 from pathlib import Path
-import argparse
 import sys
 import cv2
 import depthai as dai
 import numpy as np
 import time
+import logging
+import logging.handlers
+
+
+''' Logging Parameter '''
+logger = logging.getLogger('fishq')
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s:%(message)s')
+#handler = logging.handlers.RotatingFileHandler(filename = "fishq.log", maxBytes = 100000, backupCount= 1000)
+handler = logging.handlers.TimedRotatingFileHandler(filename = 'FISHQ.log', when = 'H', backupCount = 1000 )
+handler.setFormatter(formatter)
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.addHandler(stream_handler)
+
 
 '''
 FISHQ - PUSRISKAN
   Project penelitian pendeteksian objek ikan dengan menggunakan camera artifisial inteligent
-  code update: 20:24 WIB 10 APRIL 2021
+  code update: 13:24 WIB 18 APRIL 2021
 '''
 
 # ARSITEKTUR YOLO V3
 labelMap = [
-    "Ikan",         "bicycle",    "car",           "motorbike",     "aeroplane",   "bus",           "train",
+    "ikan",         "bicycle",    "car",           "motorbike",     "aeroplane",   "bus",           "train",
     "truck",          "boat",       "traffic light", "fire hydrant",  "stop sign",   "parking meter", "bench",
     "bird",           "cat",        "dog",           "horse",         "sheep",       "cow",           "elephant",
     "bear",           "zebra",      "giraffe",       "backpack",      "umbrella",    "handbag",       "tie",
@@ -32,7 +47,7 @@ syncNN = True
 # Cek direktori weights model didalam folder 
 # tiny-yolo-v4_openvino_2021.2_6shave.blob
 # yolov3_final_shave6.blob
-nnBlobPath = str((Path(__file__).parent / Path('models/yolov3_final_shave6.blob')).resolve().absolute())
+nnBlobPath = str((Path(__file__).parent / Path('models/tiny-yolo-v4_openvino_2021.2_6shave.blob')).resolve().absolute())
 if len(sys.argv) > 1:
     nnBlobPath = sys.argv[1]
 print(nnBlobPath)
@@ -155,6 +170,12 @@ def extractData(detections):
                   f"(X: {int(detection.spatialCoordinates.x)},",
                   f"Y: {int(detection.spatialCoordinates.y)},",
                   f"Y: {int(detection.spatialCoordinates.z)})mm")
+def stratLogging(detections):
+    for detection in detections:
+        logger.info('FISHQ DETECT:{}:X={}mm:Y={}mm:Z={}mm'.format(str(labelMap[detection.label]), 
+                                                                              int(detection.spatialCoordinates.x),
+                                                                              int(detection.spatialCoordinates.y),
+                                                                              int(detection.spatialCoordinates.x)))
 
 class Main():
     def __init__(self):
@@ -195,7 +216,8 @@ class Main():
                     visualDepth(roiDatas,depthFrame,color)
                 
                 visualDetector(frame,fps,color,detections)
-                extractData(detections)
+                stratLogging(detections)
+                
                 if cv2.waitKey(1) == ord('q'):
                     break
 
