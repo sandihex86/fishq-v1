@@ -13,7 +13,7 @@ logger = logging.getLogger('fishq')
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s:%(message)s')
 #handler = logging.handlers.RotatingFileHandler(filename = "fishq.log", maxBytes = 100000, backupCount= 1000)
-handler = logging.handlers.TimedRotatingFileHandler(filename = 'FISHQ.log', when = 'H', backupCount = 1000 )
+handler = logging.handlers.TimedRotatingFileHandler(filename = 'FISHQ_DETECTED', when = 'M', backupCount = 1000 )
 handler.setFormatter(formatter)
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
@@ -24,13 +24,13 @@ logger.addHandler(stream_handler)
 '''
 FISHQ - PUSRISKAN
   Project penelitian pendeteksian objek ikan dengan menggunakan camera artifisial inteligent
-  code update: 13:24 WIB 18 APRIL 2021
+  code update: 06:32 WIB 22 JUNI 2021
 '''
 
 # ARSITEKTUR YOLO V3
 labelMap = [
-    "ikan",         "bicycle",    "car",           "motorbike",     "aeroplane",   "bus",           "train",
-    "truck",          "boat",       "traffic light", "fire hydrant",  "stop sign",   "parking meter", "bench",
+    "Basket",        "Ikan",        "car",           "motorbike",     "aeroplane",   "bus",           "train",
+    "Ikan",          "boat",       "traffic light", "fire hydrant",  "stop sign",   "parking meter", "bench",
     "bird",           "cat",        "dog",           "horse",         "sheep",       "cow",           "elephant",
     "bear",           "zebra",      "giraffe",       "backpack",      "umbrella",    "handbag",       "tie",
     "suitcase",       "frisbee",    "skis",          "snowboard",     "sports ball", "kite",          "baseball bat",
@@ -47,16 +47,15 @@ syncNN = True
 # Cek direktori weights model didalam folder 
 # tiny-yolo-v4_openvino_2021.2_6shave.blob
 # yolov3_final_shave6.blob
-nnBlobPath = str((Path(__file__).parent / Path('models/yolov3_final_shave6.blob')).resolve().absolute())
+nnBlobPath = str((Path(__file__).parent / Path('models/W_Pekalongan_April2021.blob')).resolve().absolute())
 if len(sys.argv) > 1:
     nnBlobPath = sys.argv[1]
-print(nnBlobPath)
 
 if not Path(nnBlobPath).exists():
     import sys
     raise FileNotFoundError(f'Required file/s not found, please run "{sys.executable} install_requirements.py"')
 def create_pipeline():
-    print("--| method membuat python pipeline")
+    print("> Starting Pembuatan Pipeline FISHQ.............")
     pipeline = dai.Pipeline()
 
     # kamera warna
@@ -92,13 +91,13 @@ def create_pipeline():
     stereo.setConfidenceThreshold(255)
 
     spatialDetectionNetwork.setBlobPath(nnBlobPath)
-    spatialDetectionNetwork.setConfidenceThreshold(0.5)
+    spatialDetectionNetwork.setConfidenceThreshold(0.8)
     spatialDetectionNetwork.input.setBlocking(False)
     spatialDetectionNetwork.setBoundingBoxScaleFactor(0.5)
     spatialDetectionNetwork.setDepthLowerThreshold(100)
     spatialDetectionNetwork.setDepthUpperThreshold(5000)
     # Yolo specific parameters
-    spatialDetectionNetwork.setNumClasses(1) #set classes
+    spatialDetectionNetwork.setNumClasses(2) #set classes
     spatialDetectionNetwork.setCoordinateSize(4)
     spatialDetectionNetwork.setAnchors(np.array([10,14, 23,27, 37,58, 81,82, 135,169, 344,319]))
     spatialDetectionNetwork.setAnchorMasks({ "side26": np.array([1,2,3]), "side13": np.array([3,4,5]) })
@@ -120,6 +119,8 @@ def create_pipeline():
 
     stereo.depth.link(spatialDetectionNetwork.inputDepth)
     spatialDetectionNetwork.passthroughDepth.link(xoutDepth.input)
+    print(nnBlobPath)
+    print(' --Selesai')
     return pipeline
 def calculateFps(counter,startTime):
     current_time = time.monotonic()
@@ -176,7 +177,6 @@ def stratLogging(detections):
                                                                               int(detection.spatialCoordinates.x),
                                                                               int(detection.spatialCoordinates.y),
                                                                               int(detection.spatialCoordinates.x)))
-
 class Main():
     def __init__(self):
         self.name = "FishQ apps"
@@ -200,6 +200,7 @@ class Main():
             fps = 0
             color = (255, 255, 255)
 
+            print('FISH-Q Menunggu objek yang dikenali....')
             while True:
                 inPreview = previewQueue.get()
                 inNN = detectionNNQueue.get()
@@ -225,3 +226,4 @@ class Main():
 
 apps=Main()
 apps.run()
+
