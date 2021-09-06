@@ -24,7 +24,8 @@ logger.addHandler(stream_handler)
 '''
 FISHQ - PUSRISKAN
   Project penelitian pendeteksian objek ikan dengan menggunakan camera artifisial inteligent
-  code update: 06:32 WIB 22 JUNI 2021
+  code update: 00:32 WIB 07 SEPTEMBER 2021
+  UPDATE depthai 2.10.0.0
 '''
 
 # ARSITEKTUR YOLO V3
@@ -87,7 +88,6 @@ def create_pipeline():
     monoRight.setBoardSocket(dai.CameraBoardSocket.RIGHT)
 
     # node depth
-    stereo.setOutputDepth(True)
     stereo.setConfidenceThreshold(255)
 
     spatialDetectionNetwork.setBlobPath(nnBlobPath)
@@ -104,10 +104,8 @@ def create_pipeline():
     spatialDetectionNetwork.setIouThreshold(0.5)
 
     # Create outputs
-
     monoLeft.out.link(stereo.left)
     monoRight.out.link(stereo.right)
-
     colorCam.preview.link(spatialDetectionNetwork.input)
     if(syncNN):
         spatialDetectionNetwork.passthrough.link(xoutRgb.input)
@@ -120,7 +118,6 @@ def create_pipeline():
     stereo.depth.link(spatialDetectionNetwork.inputDepth)
     spatialDetectionNetwork.passthroughDepth.link(xoutDepth.input)
     print(nnBlobPath)
-    print(' --Selesai')
     return pipeline
 def calculateFps(counter,startTime):
     current_time = time.monotonic()
@@ -144,7 +141,7 @@ def visualDepth(roiDatas,depthFrame,color):
         ymax = int(bottomRight.y)
     cv2.rectangle(depthFrameColor, (xmin, ymin), (xmax, ymax), color, cv2.FONT_HERSHEY_SCRIPT_SIMPLEX)
     cv2.imshow("FISHQ-DEPTH", depthFrameColor)
-def visualDetector(frame,fps,color,detections):
+def visualDetector(frame,color,detections):
     height = frame.shape[0]
     width  = frame.shape[1]
     # Denormalize bounding box
@@ -163,7 +160,7 @@ def visualDetector(frame,fps,color,detections):
         cv2.putText(frame, f"Y: {int(detection.spatialCoordinates.y)} mm", (x1 + 10, y1 + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
         cv2.putText(frame, f"Z: {int(detection.spatialCoordinates.z)} mm", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
         cv2.rectangle(frame, (x1, y1), (x2, y2), color, cv2.FONT_HERSHEY_SIMPLEX)
-        cv2.putText(frame, "FISHQ FPS SENSING: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+        cv2.putText(frame, "FISHQ FPS SENSING: {:.2f}", (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
         cv2.imshow("DEPTHAI-CAM-DETECTOR", frame)
 def extractData(detections):
     for detection in detections:
@@ -197,7 +194,6 @@ class Main():
 
             startTime = time.monotonic()
             counter = 0
-            fps = 0
             color = (255, 255, 255)
 
             print('FISH-Q Menunggu objek yang dikenali....')
@@ -206,7 +202,6 @@ class Main():
                 inNN = detectionNNQueue.get()
                 depth = depthQueue.get()
                 counter+=1
-                fps = calculateFps(counter,startTime)
                 frame = inPreview.getCvFrame()
                 depthFrame = depth.getFrame()
                 detections = inNN.detections
@@ -216,7 +211,8 @@ class Main():
                     roiDatas = boundingBoxMapping.getConfigData()
                     visualDepth(roiDatas,depthFrame,color)
                 
-                visualDetector(frame,fps,color,detections)
+                visualDetector(frame,color,detections)
+
                 stratLogging(detections)
                 
                 if cv2.waitKey(1) == ord('q'):
